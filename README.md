@@ -12,7 +12,43 @@ mIOU=94.6%
 - - -
 
 ## Post-Image Process
+### Similarity
+Comparing similarity to determine the angle rotated around the z-axis. Pre-processed in 3 and use the straight line image with the z-axis.
 
+Z-axis rotated standard images are already saved in directory.
+
+To do this we use the mahotas technology algorithm.
+
+This library is used in image processing, which has a simple algorithm and is faster than other matching algorithms.
+
+The principle is
+
+1. Pattern the objects and images to be found in the image using an array.
+
+2. Using the convolution, find the section where the value between the object and the image is the maximum.
+
+#### 1)image_simularity
+Using the mahotas library, first resize the bones measured for similarity and the bone to be measured to a size suitable for measurement.
+
+Each picture is patterned by extracting features. At this time, the GLCM algorithm is used,
+
+It is a method of calculating how often a pair of pixels having a specific value occurs in a specific spatial relationship.
+
+Lastly, convolution measures the degree of similarity using the cosine similarity method.
+
+#### 2)plotimage
+| name|Input|Output|
+|:---:|:---:|:---:|
+| Plot_Image|bone_image(not fracture)|similar bone image until second|
+| Plot_Image2|bone_image(fracture)|Upper similar bone image until second,Under similar bone image until second|
+
+This function is used to list pictures similar to the input picture. 
+In the case of fracture, since pictures should be listed for each case of the upper and lower versions, there are two versions of the function.
+### Example of UnderBoneCase
+![Under_Bone](https://user-images.githubusercontent.com/53164312/99875415-e82a3800-2c32-11eb-8d29-1b02fa5d4092.png)
+
+
+* * *
 ### Internal Function
 #### 1) expand
 When rotating the image, make it 1.5 times the pixel size starting from the center and fill the gap with black to prevent image loss (cut) at both ends.
