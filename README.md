@@ -1,9 +1,106 @@
 # CapstoneDesign20
+Semantic Segmentation of femoral bone using deep learning is performed, and fracture area is shown in 3D by matching with the 3D model. Traditional methods of 
+fracture surgery required doctors to use real-time X-ray equipment to understand patients's fracture. But this project will help them understand their fracture situation with just two X-ray. This significantly reduces the time of exposure to radiation when doctors x-ray.
 
 ## Deep Learning (Segmentation)
 ### Flow Chart
 ![image](https://user-images.githubusercontent.com/37788686/99873946-1f92e780-2c27-11eb-9fc1-0c7366f36dad.png)
 ![image](https://user-images.githubusercontent.com/37788686/99873948-24f03200-2c27-11eb-875b-b9b5661bddf9.png)
+### Characteristics
+We used U-Net, commonly used in biomedical Semantic Segmentation, as a baseline model. But we slightly modified the U-Net model, so we can make a more efficient and high-performance model.
+![image](https://user-images.githubusercontent.com/37788686/100350356-1a6dd800-302d-11eb-822f-fc7186275079.png)
+
+The image above is a picture of an existing U-Net architecture. We changed maxpool(2x2) layers to Conv(stride=2) layers and up-conv(2x2) to Transposed Conv layers. So we were able to construct the optimal layer where mathematical operations were performed differently depending on the input value.
+```python
+class Down(nn.Module):
+    def __init__(self, in_channels, out_channels, separable, down_method='maxpool'):
+        super().__init__()
+        if down_method == 'maxpool':
+            self.downsample = nn.MaxPool2d(2)
+        elif down_method == 'conv':
+            self.downsample = nn.Conv2d(in_channels, in_channels, 2, stride=2, bias=False)
+
+        self.convs = DoubleConv(in_channels, out_channels, separable=separable)
+
+    def forward(self, x):
+        x = self.downsample(x)
+        x = self.convs(x)
+        return x
+
+
+
+class Up(nn.Module):
+    def __init__(self, in_channels, out_channels, separable, up_method='bilinear'):
+        super().__init__()
+        self.convs = DoubleConv(in_channels, out_channels, separable=separable)
+        if up_method == 'bilinear':
+            self.upsample = nn.Sequential(
+                nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True),
+                PointWiseConv(in_channels, out_channels, bias=False)
+            )
+        elif up_method == 'transpose':
+            self.upsample = nn.ConvTranspose2d(in_channels, out_channels, kernel_size=2, stride=2,
+                                               bias=False)
+
+
+    def forward(self, bottom_x, skip_x):
+        bottom_x = self.upsample(bottom_x) #[B, C, H, W]
+        concate_x = torch.cat([skip_x, bottom_x], dim=1)
+
+        return self.convs(concate_x)
+```
+Down and Up class are the base modules of U-Net. They take down,up_method parameter and modules are constructed accordingly. Down class can consist of convolution(stride=2) layer and Up class of transposed convolution layer.
+
+        
+![image](https://user-images.githubusercontent.com/37788686/100351312-9b799f00-302e-11eb-8514-8f7977ff3fbb.png)
+```python
+class DepthWiseConv(nn.Module):
+    def __init__(self, channels, kernel_size, stride=1, padding=0, padding_mode='zeros',
+                 dilation=1, bias=True):
+        '''
+        In Depth-Wise Conv, in_channels and out_channels are same.
+        channel-wise convoution.
+        '''
+        super().__init__()
+        self.depthwise_conv = nn.Conv2d(channels, channels, kernel_size, stride,
+                                        padding=padding, dilation=dilation,
+                                        groups=channels, bias=bias, padding_mode=padding_mode)
+
+    def forward(self, x):
+        return self.depthwise_conv(x)
+
+class PointWiseConv(nn.Module):
+    def __init__(self, in_channels, out_channels, bias=True):
+        super(PointWiseConv, self).__init__()
+        self.pointwise_conv = nn.Conv2d(in_channels, out_channels, kernel_size=1, bias=bias)
+
+    def forward(self, x):
+        return self.pointwise_conv(x)
+
+class DepthWiseSeparableConv(nn.Module):
+    def __init__(self, in_channels, out_channels, kernel_size, stride=1, padding=0, padding_mode='zeros',
+                 dilation=1, bias=True):
+        super(DepthWiseSeparableConv, self).__init__()
+        self.depthwise_conv = DepthWiseConv(in_channels, kernel_size, stride, padding,
+                                            padding_mode, dilation, bias)
+        self.pointwise_conv = PointWiseConv(in_channels, out_channels)
+
+    def forward(self, x):
+        x = self.depthwise_conv(x)
+        x = self.pointwise_conv(x)
+        return x
+ ``` 
+And we changed all Standard Conv layers to Depthwise Separable Conv layers, so we were able to implement a more efficient model that would reduce the parameter by one-fifth and maintain performance. 
+| | mIOU | Params(M) |
+| - | --- | -------- |
+| Existing U-Net | 94.5% | 31.0 |
+| Modified U-Net | 94.6% | 7.3 |
+
+To reduce noise from the labeling image obtained by the deep learning model and obtain a more dense labeling image, we used Efficient Full-Connected CRF.
+![image](https://user-images.githubusercontent.com/37788686/100351770-54d87480-302f-11eb-8ec6-a4a594de57c8.png)
+![image](https://user-images.githubusercontent.com/37788686/100352779-df6da380-3030-11eb-828b-3b984c66272f.png)
+
+Fully-Connected CRF consists of two kernels, appearance kernel and smoothness kernel. The appearance kernel is inspired by the observation that nearby pixels with similar color are likely to be in the same class. The smoothness kernel removes small isolated regions.
 
 ### Results
 ![image](https://user-images.githubusercontent.com/37788686/99873950-29b4e600-2c27-11eb-8bb6-78c538642414.png)
@@ -148,4 +245,11 @@ Input : angle (x, y, z)
 - scikit-learn==0.23.1
 - opencv-python==4.2.0
 - numpy==1.18.1
+
+## References
+[1] [U-Net: Convolutional Networks for Biomedical Image Segmentation](https://arxiv.org/abs/1505.04597)
+
+[2] [DeepLab: Semantic Image Segmentation with Deep Convolutional Nets, Atrous Convolution, and Fully Connected CRFs](https://arxiv.org/abs/1606.00915)
+
+[3] [Efficient Inference in Fully Connected CRFs with Gaussian Edge Potentials](https://arxiv.org/abs/1210.5644)
 ###### Copyright 2020. BornToBeDeeplearning All Rights Reserved
