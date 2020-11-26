@@ -98,7 +98,7 @@ And we changed all Standard Conv layers to Depthwise Separable Conv layers, so w
 | Existing U-Net | 94.5% | 31.0 |
 | Modified U-Net | 94.6% | 7.3 |
 
-To reduce noise from the labeling image obtained by the deep learning model and obtain a more dense labeling image, we used Efficient Full-Connected CRF.
+To reduce noise from the labeling image obtained by the deep learning model and obtain a more dense labeling image, we used Efficient Fully-Connected CRF.
 ![image](https://user-images.githubusercontent.com/37788686/100351770-54d87480-302f-11eb-8ec6-a4a594de57c8.png)
 ![image](https://user-images.githubusercontent.com/37788686/100352779-df6da380-3030-11eb-828b-3b984c66272f.png)
 
