@@ -1,7 +1,8 @@
-# CapstoneDesign20
+# CapstoneDesign20(딥러닝을 이용한 2차원 X-선 뼈 영역 분할 및 3차원 뼈 모델링 기법)
 Semantic Segmentation of femoral bone using deep learning is performed, and fracture area is shown in 3D by matching with the 3D model. Traditional methods of 
 fracture surgery required doctors to use real-time X-ray equipment to understand patients's fracture. But this project will help them understand their fracture situation with just two X-ray. This significantly reduces the time of exposure to radiation when doctors x-ray.
 
+For more information, visit our youtube https://youtu.be/ZWfRwMb3aCY
 ## Deep Learning (Segmentation)
 ### Flow Chart
 ![image](https://user-images.githubusercontent.com/37788686/99873946-1f92e780-2c27-11eb-9fc1-0c7366f36dad.png)
@@ -253,4 +254,5 @@ Input : angle (x, y, z)
 [2] [DeepLab: Semantic Image Segmentation with Deep Convolutional Nets, Atrous Convolution, and Fully Connected CRFs](https://arxiv.org/abs/1606.00915)
 
 [3] [Efficient Inference in Fully Connected CRFs with Gaussian Edge Potentials](https://arxiv.org/abs/1210.5644)
+
 ###### Copyright 2020. BornToBeDeeplearning All Rights Reserved
