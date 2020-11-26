@@ -8,6 +8,7 @@ fracture surgery required doctors to use real-time X-ray equipment to understand
 ![image](https://user-images.githubusercontent.com/37788686/99873948-24f03200-2c27-11eb-875b-b9b5661bddf9.png)
 ### Characteristics
 We used U-Net, commonly used in biomedical Semantic Segmentation, as a baseline model. But we slightly modified the U-Net model, so we can make a more efficient and high-performance model.
+
 ![image](https://user-images.githubusercontent.com/37788686/100350356-1a6dd800-302d-11eb-822f-fc7186275079.png)
 
 The image above is a picture of an existing U-Net architecture. We changed maxpool(2x2) layers to Conv(stride=2) layers and up-conv(2x2) to Transposed Conv layers. So we were able to construct the optimal layer where mathematical operations were performed differently depending on the input value.
